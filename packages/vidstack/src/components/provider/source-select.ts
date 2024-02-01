@@ -52,8 +52,8 @@ export class SourceSelection {
       const remoteLoader = _media.$state.remotePlaybackLoader();
 
       const loaders = _media.$props.preferNativeHLS()
-        ? [VIDEO_LOADER, AUDIO_LOADER, HLS_LOADER, ...EMBED_LOADERS, ...customLoaders]
-        : [HLS_LOADER, VIDEO_LOADER, AUDIO_LOADER, ...EMBED_LOADERS, ...customLoaders];
+        ? [...customLoaders, VIDEO_LOADER, AUDIO_LOADER, HLS_LOADER, ...EMBED_LOADERS]
+        : [...customLoaders, HLS_LOADER, VIDEO_LOADER, AUDIO_LOADER, ...EMBED_LOADERS];
 
       return remoteLoader ? [remoteLoader, ...loaders] : loaders;
     });

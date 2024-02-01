@@ -6,7 +6,7 @@ import {
   useStateContext,
   type ReactElementProps,
 } from 'maverick.js/react';
-import { mediaState, type MediaProviderLoader } from 'vidstack';
+import { mediaState, type MediaProviderAdapter, type MediaProviderLoader } from 'vidstack';
 
 import { useMediaContext } from '../hooks/use-media-context';
 import { Icon } from '../icon';
@@ -24,6 +24,10 @@ export interface MediaProviderProps
   loaders?: Array<{ new (): MediaProviderLoader }>;
   mediaProps?: React.HTMLAttributes<HTMLMediaElement>;
   children?: React.ReactNode;
+  buildMediaEl?: (
+    loader: MediaProviderLoader<MediaProviderAdapter> | null,
+    provider: MediaProviderInstance,
+  ) => React.ReactNode;
   ref?: React.Ref<MediaProviderInstance>;
 }
 
@@ -39,14 +43,14 @@ export interface MediaProviderProps
  * ```
  */
 const MediaProvider = React.forwardRef<MediaProviderInstance, MediaProviderProps>(
-  ({ loaders = [], children, mediaProps, ...props }, forwardRef) => {
+  ({ loaders = [], children, mediaProps, buildMediaEl, ...props }, forwardRef) => {
     const reactLoaders = React.useMemo(() => loaders.map((Loader) => new Loader()), loaders);
 
     return (
       <MediaProviderBridge {...props} loaders={reactLoaders} ref={forwardRef}>
         {(props, instance) => (
           <div {...props}>
-            <MediaOutlet {...mediaProps} provider={instance} />
+            <MediaOutlet {...mediaProps} provider={instance} {...{ buildMediaEl }} />
             {children}
           </div>
         )}
@@ -64,9 +68,13 @@ export { MediaProvider };
 
 interface MediaOutletProps extends React.HTMLAttributes<HTMLMediaElement> {
   provider: MediaProviderInstance;
+  buildMediaEl?: (
+    loader: MediaProviderLoader<MediaProviderAdapter> | null,
+    provider: MediaProviderInstance,
+  ) => React.ReactNode;
 }
 
-function MediaOutlet({ provider, ...props }: MediaOutletProps) {
+function MediaOutlet({ provider, buildMediaEl, ...props }: MediaOutletProps) {
   const { controls, crossOrigin, poster, remotePlaybackInfo } = useStateContext(mediaState),
     { loader } = provider.$state,
     {
@@ -134,36 +142,39 @@ function MediaOutlet({ provider, ...props }: MediaOutletProps) {
     );
   }
 
-  return isEmbed
-    ? React.createElement(
-        React.Fragment,
-        null,
-        React.createElement('iframe', {
-          className: isYouTubeEmbed ? 'vds-youtube' : 'vds-vimeo',
-          suppressHydrationWarning: true,
-          tabIndex: !$nativeControls ? -1 : undefined,
-          'aria-hidden': 'true',
-          'data-no-controls': !$nativeControls ? '' : undefined,
-          ref(el: HTMLElement) {
-            provider.load(el);
-          },
-        }),
-        !$nativeControls ? React.createElement('div', { className: 'vds-blocker' }) : null,
-      )
-    : $mediaType
-      ? React.createElement($mediaType === 'audio' ? 'audio' : 'video', {
-          ...props,
-          controls: $nativeControls ? true : null,
-          crossOrigin: typeof $crossOrigin === 'boolean' ? '' : $crossOrigin,
-          poster: $mediaType === 'video' && $nativeControls && $poster ? $poster : null,
-          preload: 'none',
-          'aria-hidden': 'true',
-          suppressHydrationWarning: true,
-          ref(el: HTMLElement) {
-            provider.load(el);
-          },
-        })
-      : null;
+  return (
+    buildMediaEl?.($loader, provider) ??
+    (isEmbed
+      ? React.createElement(
+          React.Fragment,
+          null,
+          React.createElement('iframe', {
+            className: isYouTubeEmbed ? 'vds-youtube' : 'vds-vimeo',
+            suppressHydrationWarning: true,
+            tabIndex: !$nativeControls ? -1 : undefined,
+            'aria-hidden': 'true',
+            'data-no-controls': !$nativeControls ? '' : undefined,
+            ref(el: HTMLElement) {
+              provider.load(el);
+            },
+          }),
+          !$nativeControls ? React.createElement('div', { className: 'vds-blocker' }) : null,
+        )
+      : $mediaType
+        ? React.createElement($mediaType === 'audio' ? 'audio' : 'video', {
+            ...props,
+            controls: $nativeControls ? true : null,
+            crossOrigin: typeof $crossOrigin === 'boolean' ? '' : $crossOrigin,
+            poster: $mediaType === 'video' && $nativeControls && $poster ? $poster : null,
+            preload: 'none',
+            'aria-hidden': 'true',
+            suppressHydrationWarning: true,
+            ref(el: HTMLElement) {
+              provider.load(el);
+            },
+          })
+        : null)
+  );
 }
 
 MediaOutlet.displayName = 'MediaOutlet';

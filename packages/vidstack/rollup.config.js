@@ -205,9 +205,9 @@ function defineNPMBundle({ target, type, minify }) {
         platform: isServer ? 'node' : 'browser',
         minify: minify,
         legalComments: 'none',
-        mangleProps: shouldMangle ? /^_/ : undefined,
-        mangleCache: shouldMangle ? MANGLE_CACHE : undefined,
-        reserveProps: shouldMangle ? /^__/ : undefined,
+        // mangleProps: shouldMangle ? /^_/ : undefined,
+        // mangleCache: shouldMangle ? MANGLE_CACHE : undefined,
+        // reserveProps: shouldMangle ? /^__/ : undefined,
         define: {
           __DEV__: !isProd && !isServer ? 'true' : 'false',
           __SERVER__: isServer ? 'true' : 'false',

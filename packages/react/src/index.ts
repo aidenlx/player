@@ -139,3 +139,5 @@ export {
 // Layouts
 export type { DefaultLayoutProps } from './components/layouts/default';
 export type { PlyrLayoutProps } from './components/layouts/plyr';
+
+export * as Maverick from 'maverick.js';

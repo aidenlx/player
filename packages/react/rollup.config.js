@@ -182,9 +182,9 @@ function defineNPMBundle({ dev }) {
         tsconfig: 'tsconfig.build.json',
         target: 'es2021',
         platform: 'browser',
-        mangleProps: !dev ? /^_/ : undefined,
-        mangleCache: !dev ? MANGLE_CACHE : undefined,
-        reserveProps: !dev ? /^__/ : undefined,
+        // mangleProps: !dev ? /^_/ : undefined,
+        // mangleCache: !dev ? MANGLE_CACHE : undefined,
+        // reserveProps: !dev ? /^__/ : undefined,
         define: {
           __DEV__: dev ? 'true' : 'false',
         },
