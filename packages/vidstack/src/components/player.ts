@@ -191,7 +191,7 @@ export class MediaPlayer
       context,
     );
 
-    new NavigatorMediaSession();
+    // new NavigatorMediaSession();
     new MediaLoadController('load', this.startLoading.bind(this));
     new MediaLoadController('posterLoad', this.startLoadingPoster.bind(this));
   }
